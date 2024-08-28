@@ -1,37 +1,37 @@
 import streamlit as st
-import pandas as pd
+import time
 
-# 애플리케이션 제목
-st.title("일정 트래킹 서비스")
+# 게임 타이틀
+st.title("타이핑 속도 측정 게임")
 
-# 데이터 저장을 위한 기본 DataFrame 설정
-if "schedule_data" not in st.session_state:
-    st.session_state["schedule_data"] = pd.DataFrame(columns=["날짜", "이벤트"])
+# 타이핑 테스트에 사용할 문장
+test_sentence = "이 문장을 가능한 빨리 타이핑하세요!"
 
-# 날짜와 이벤트 입력을 위한 폼 생성
-with st.form("schedule_form"):
-    date = st.date_input("날짜 선택")
-    event = st.text_input("이벤트 설명")
-    submitted = st.form_submit_button("일정 추가")
+# 게임 시작을 위한 버튼
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = None
 
-    # 폼이 제출되었을 때 DataFrame에 추가
-    if submitted and event:
-        new_data = {"날짜": date, "이벤트": event}
-        
-        # 기존 DataFrame을 복사하고 업데이트
-        schedule_data = st.session_state["schedule_data"].copy()
-        schedule_data = pd.concat([schedule_data, pd.DataFrame([new_data])], ignore_index=True)
-        
-        # 업데이트된 DataFrame을 세션 상태에 저장
-        st.session_state["schedule_data"] = schedule_data
-        
-        st.success("일정이 추가되었습니다.")
+if 'user_input' not in st.session_state:
+    st.session_state.user_input = ""
 
-# 저장된 일정 데이터를 테이블 형식으로 표시
-st.subheader("저장된 일정")
-st.table(st.session_state["schedule_data"])
+if st.button("게임 시작"):
+    st.session_state.start_time = time.time()  # 현재 시간을 저장하여 게임 시작 시간으로 사용
+    st.session_state.user_input = ""  # 입력 필드 초기화
 
-# 일정 초기화 기능
-if st.button("일정 초기화"):
-    st.session_state["schedule_data"] = pd.DataFrame(columns=["날짜", "이벤트"])
-    st.success("일정이 초기화되었습니다.")
+# 사용자가 타이핑할 문장을 표시
+st.write(f"타이핑할 문장: {test_sentence}")
+
+# 타이핑 입력 필드
+user_input = st.text_input("입력 필드", st.session_state.user_input)
+
+# 사용자가 입력하는 동안 입력 필드를 업데이트
+st.session_state.user_input = user_input
+
+# 사용자가 입력을 완료했는지 확인
+if user_input == test_sentence and st.session_state.start_time is not None:
+    end_time = time.time()  # 현재 시간을 저장하여 게임 종료 시간으로 사용
+    time_taken = end_time - st.session_state.start_time  # 걸린 시간 계산
+    st.write(f"축하합니다! 완료하는 데 걸린 시간: {time_taken:.2f} 초")
+    st.session_state.start_time = None  # 게임 초기화
+else:
+    st.write("올바른 문장을 입력하세요!")
