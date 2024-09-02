@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 import openai
 import yfinance as yf
 import requests
+from bs4 import BeautifulSoup
 
 # OpenAI API 키 설정
 openai.api_key = "sk-iv2lZR-RmhJr3VeLYdPeT6yS-d--k1CcZKa5oGx6BwT3BlbkFJArWx9xkyLIIMuXo9ZNe4RHPQK07QmfsId0lMvBOskA"
@@ -64,24 +65,31 @@ def get_company_info(company_name):
 
 # 기업명으로 티커 심볼 찾기 (개선된 버전)
 def get_ticker_from_name(company_name):
-  url = f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}"
-  headers = {'User-Agent': 'Mozilla/5.0'}
-  response = requests.get(url, headers=headers)
-  
-  # 응답 상태 코드 확인 (예시)
-  if response.status_code == 200:
-    # JSON 형식이 맞는지 확인 (예시)
-    try:
-      data = response.json()
-      if 'quotes' in data and len(data['quotes']) > 0:
-        return data['quotes'][0]['symbol']
-      else:
-        print("티커 심볼을 찾을 수 없습니다.")
-    except ValueError:
-      print("JSON 데이터 형식이 잘못되었습니다.")
-  else:
-    print(f"API 호출 오류: {response.status_code}")
-  return None
+    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        try:
+            # JSON 파싱 시도
+            data = response.json()
+            if 'quotes' in data and len(data['quotes']) > 0:
+                return data['quotes'][0]['symbol']
+        except json.JSONDecodeError:
+            # HTML 파싱 시도
+            soup = BeautifulSoup(response.text, 'html.parser')
+            # HTML 구조에 따라 필요한 정보 추출 (예시)
+            ticker_element = soup.find('span', class_='Fw(b)')  # 클래스 이름은 실제 HTML 구조에 따라 변경
+            if ticker_element:
+                return ticker_element.text
+            else:
+                print("티커 심볼을 찾을 수 없습니다.")
+        except Exception as e:
+            print(f"예기치 못한 오류 발생: {e}")
+    else:
+        print(f"API 호출 오류: {response.status_code}")
+    return None
+    
 
 # Yahoo Finance를 사용하여 재무 정보 가져오기
 def get_financial_info(ticker_symbol):
