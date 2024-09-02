@@ -64,14 +64,24 @@ def get_company_info(company_name):
 
 # 기업명으로 티커 심볼 찾기 (개선된 버전)
 def get_ticker_from_name(company_name):
-    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}"
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url, headers=headers)
-    data = response.json()
-
-    if 'quotes' in data and len(data['quotes']) > 0:
+  url = f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}"
+  headers = {'User-Agent': 'Mozilla/5.0'}
+  response = requests.get(url, headers=headers)
+  
+  # 응답 상태 코드 확인 (예시)
+  if response.status_code == 200:
+    # JSON 형식이 맞는지 확인 (예시)
+    try:
+      data = response.json()
+      if 'quotes' in data and len(data['quotes']) > 0:
         return data['quotes'][0]['symbol']
-    return None
+      else:
+        print("티커 심볼을 찾을 수 없습니다.")
+    except ValueError:
+      print("JSON 데이터 형식이 잘못되었습니다.")
+  else:
+    print(f"API 호출 오류: {response.status_code}")
+  return None
 
 # Yahoo Finance를 사용하여 재무 정보 가져오기
 def get_financial_info(ticker_symbol):
