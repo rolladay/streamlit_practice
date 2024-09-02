@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # OpenAI API 키 설정
-openai.api_key = "sk-iv2lZR-RmhJr3VeLYdPeT6yS-d--k1CcZKa5oGx6BwT3BlbkFJArWx9xkyLIIMuXo9ZNe4RHPQK07QmfsId0lMvBOskA"
+openai.api_key = "myapikey"
 
 # 데이터베이스 연결 설정 (SQLite 사용)
 engine = create_engine('sqlite:///company_info.db')
